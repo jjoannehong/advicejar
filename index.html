@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Anonymous Advice Jar</title>
+        <script type="importmap">
+            {
+                "imports": {
+                    "vue": "https://cdn.jsdelivr.net/npm/vue@3.5.32/dist/vue.esm-browser.js",
+                    "@graffiti-garden/implementation-local": "https://cdn.jsdelivr.net/npm/@graffiti-garden/implementation-local@1.2.0/dist/browser/index.js",
+                    "@graffiti-garden/implementation-decentralized": "https://cdn.jsdelivr.net/npm/@graffiti-garden/implementation-decentralized@0.0.9/dist/browser/index.js",
+                    "@graffiti-garden/wrapper-vue": "https://cdn.jsdelivr.net/npm/@graffiti-garden/wrapper-vue@1.2.2/dist/browser/plugin.mjs"
+                }
+            }
+        </script>
+        <script src="index.js" type="module"></script>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <div id="app">Loading...</div>
+        <template id="template">
+            <main class="app-shell">
+                <h1 class="title">the advice jar</h1>
+
+                <button
+                    v-if="!$graffitiSession.value"
+                    class="auth-button"
+                    @click="$graffiti.login()"
+                >
+                    LOG IN
+                </button>
+
+                <template v-else>
+                    <section v-if="currentView === 'home'" class="jar-view">
+                        <div class="jar-illustration" aria-hidden="true">
+                            <div class="jar-lid"></div>
+                            <div class="jar-body">
+                                <div class="jar-categories">
+                                    <button
+                                        v-for="cat in categories"
+                                        :key="'home-' + cat"
+                                        type="button"
+                                        class="category-pill"
+                                        :class="{ active: selectedCategory === cat }"
+                                        @click="selectedCategory = cat"
+                                    >
+                                        {{ cat }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="action-row">
+                            <button class="outline-button" @click="openAddView()">
+                                ADD
+                            </button>
+                            <button class="outline-button" @click="receiveAdvice()">
+                                RECEIVE
+                            </button>
+                        </div>
+
+                        <div class="stats-row">
+                            <p class="stat-pill">advice given: {{ giveCount }}</p>
+                            <p class="stat-pill">advice received: {{ takeCount }}</p>
+                        </div>
+                        <p v-if="receiveStatus" class="status-text">{{ receiveStatus }}</p>
+
+                        <div v-if="revealedAdvice" class="advice-card">
+                            <h3>advice received:</h3>
+                            <p>"{{ revealedAdvice.content }}"</p>
+                            <p class="chip-label">{{ revealedAdvice.category }}</p>
+                        </div>
+                    </section>
+
+                    <section v-else class="form-view">
+                        <form class="advice-form" @submit.prevent="giveAdvice()">
+                            <textarea
+                                v-model="myAdvice"
+                                rows="8"
+                                maxlength="260"
+                                placeholder="leave your advice here...(ex. comparison is the thief of joy)"
+                            ></textarea>
+
+                            <div class="category-row">
+                                <button
+                                    v-for="cat in categories"
+                                    :key="cat"
+                                    type="button"
+                                    class="category-pill"
+                                    :class="{ active: selectedCategory === cat }"
+                                    @click="selectedCategory = cat"
+                                >
+                                    {{ cat }}
+                                </button>
+                            </div>
+
+                            <div class="form-footer">
+                                <button type="button" class="outline-button" @click="openHomeView()">
+                                    BACK
+                                </button>
+                                <button
+                                    type="submit"
+                                    class="outline-button submit-button"
+                                    :disabled="!myAdvice.trim() || isSending"
+                                >
+                                    {{ isSending ? "SENDING..." : "SUBMIT" }}
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <button class="logout-link" @click="$graffiti.logout($graffitiSession.value)">
+                        log out
+                    </button>
+                </template>
+            </main>
+        </template>
+    </body>
+</html>

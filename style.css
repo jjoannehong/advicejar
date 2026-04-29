@@ -1,0 +1,229 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: #fff;
+    color: #222;
+}
+
+#app {
+    width: 100%;
+    min-height: 100vh;
+}
+
+.app-shell {
+    background: #fff;
+    min-height: 620px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 70px 24px 32px;
+}
+
+.title {
+    margin: 0;
+    font-size: 36px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    text-transform: lowercase;
+}
+
+.jar-view,
+.form-view {
+    width: min(520px, 100%);
+    margin-top: 36px;
+}
+
+.jar-illustration {
+    margin: 0 auto;
+    width: 200px;
+}
+
+.jar-lid {
+    width: 142px;
+    height: 22px;
+    margin: 0 auto 2px;
+    border: 3px solid #222;
+    border-radius: 36px 36px 20px 20px;
+}
+
+.jar-body {
+    width: 172px;
+    height: 272px;
+    margin: 0 auto;
+    border: 3px solid #222;
+    border-radius: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px 12px;
+}
+
+.jar-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    align-items: center;
+}
+
+.action-row {
+    margin-top: 42px;
+    display: flex;
+    justify-content: center;
+    gap: 22px;
+}
+
+.outline-button,
+.auth-button {
+    appearance: none;
+    border: 2px solid #222;
+    border-radius: 12px;
+    background: #efefef;
+    color: #111;
+    padding: 10px 20px;
+    font-size: 20px;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+}
+
+.outline-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.auth-button {
+    margin-top: 56px;
+}
+
+.hint-text,
+.status-text {
+    text-align: center;
+    font-size: 18px;
+}
+
+.stats-row {
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.stat-pill {
+    margin: 0;
+    border: 1.5px solid #222;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 15px;
+    text-transform: lowercase;
+    background: #fafafa;
+}
+
+.status-text {
+    margin-top: 8px;
+}
+
+.advice-card {
+    margin-top: 14px;
+    border: 2px solid #222;
+    border-radius: 18px;
+    background: #f7f7f7;
+    padding: 14px 18px;
+}
+
+.advice-card h3 {
+    margin: 0 0 8px;
+    text-transform: lowercase;
+}
+
+.advice-card p {
+    margin: 0;
+}
+
+.chip-label {
+    margin-top: 8px !important;
+    color: #555;
+    text-transform: lowercase;
+}
+
+.advice-form {
+    border: 2px solid #222;
+    border-radius: 26px;
+    padding: 24px;
+    background: #ececec;
+}
+
+.advice-form textarea {
+    width: 100%;
+    resize: none;
+    border: 1px dashed #bbb;
+    border-radius: 8px;
+    background: #f2f2f2;
+    font: inherit;
+    font-size: 17px;
+    line-height: 1.4;
+    padding: 12px;
+}
+
+.category-row {
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.category-pill {
+    border: 2px solid #222;
+    border-radius: 999px;
+    background: #efefef;
+    font: inherit;
+    font-size: 16px;
+    text-transform: lowercase;
+    padding: 6px 18px;
+    cursor: pointer;
+    min-width: 78px;
+}
+
+.category-pill.active {
+    background: #d9f3d5;
+}
+
+.form-footer {
+    margin-top: 22px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.logout-link {
+    margin-top: 26px;
+    border: none;
+    background: transparent;
+    color: #555;
+    text-decoration: underline;
+    font: inherit;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+@media (max-width: 720px) {
+    .app-shell {
+        min-height: auto;
+        padding: 44px 18px 28px;
+    }
+
+    .title {
+        font-size: 30px;
+    }
+
+    .outline-button,
+    .auth-button {
+        font-size: 16px;
+        padding: 9px 15px;
+    }
+}
