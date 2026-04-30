@@ -1,0 +1,35 @@
+<h2 class="title">add advice</h2>
+<section class="form-view">
+    <form class="advice-form" @submit.prevent="submitAdvice">
+        <textarea
+            v-model="content"
+            rows="8"
+            maxlength="260"
+            placeholder="leave your advice here..."
+        ></textarea>
+
+        <div class="category-row">
+            <button
+                v-for="cat in categories"
+                :key="cat"
+                type="button"
+                class="category-pill"
+                :class="{ active: category === cat }"
+                @click="category = cat"
+            >
+                {{ cat }}
+            </button>
+        </div>
+
+        <div class="form-footer">
+            <router-link class="outline-link" :to="`/home`">BACK</router-link>
+            <button
+                type="submit"
+                class="outline-button submit-button"
+                :disabled="!content.trim()"
+            >
+                SUBMIT
+            </button>
+        </div>
+    </form>
+</section>

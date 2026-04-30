@@ -1,0 +1,17 @@
+<h2 class="title">profile</h2>
+<section class="form-view">
+    <p class="status-text">saved advice: {{ savedAdviceIds.length }}</p>
+    <div v-if="!savedAdviceIds.length" class="advice-card">
+        <p>no saved advice yet.</p>
+    </div>
+    <ul v-else class="profile-list">
+        <li v-for="advice in savedAdvice" :key="advice.id" class="advice-card">
+            <p>"{{ advice.content }}"</p>
+            <p class="chip-label">{{ advice.category }}</p>
+            <save-advice
+                :saved="true"
+                @toggle-save="toggleSaved(advice.id)"
+            ></save-advice>
+        </li>
+    </ul>
+</section>

@@ -1,0 +1,48 @@
+<section class="jar-view">
+    <p class="status-text status-slot" :class="{ visible: !!receiveStatus }">
+        {{ receiveStatus || " " }}
+    </p>
+
+    <div class="jar-illustration" :class="{ shaking: isLoading }" aria-hidden="true">
+        <div class="jar-lid"></div>
+        <div class="jar-body">
+            <div v-if="showCategories && !isLoading" class="jar-categories">
+                <button
+                    v-for="category in categories"
+                    :key="category"
+                    type="button"
+                    class="category-pill"
+                    :class="{ active: selectedCategory === category }"
+                    @click="onSelectCategory(category)"
+                >
+                    {{ category }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-row">
+        <router-link class="outline-link" :to="`/compose`">ADD</router-link>
+        <button class="outline-button" type="button" @click="onReceiveAdvice">
+            RECEIVE
+        </button>
+    </div>
+</section>
+
+<div
+    v-if="showAdviceModal && revealedAdvice"
+    class="modal-overlay"
+    @click.self="closeAdviceModal"
+>
+    <div class="advice-modal">
+        <button class="modal-x" type="button" @click="closeAdviceModal" aria-label="Close">
+            ×
+        </button>
+        <h3>advice received:</h3>
+        <p>"{{ revealedAdvice.content }}"</p>
+        <save-advice
+            :saved="isSaved(revealedAdvice.id)"
+            @toggle-save="toggleSaved(revealedAdvice.id)"
+        ></save-advice>
+    </div>
+</div>

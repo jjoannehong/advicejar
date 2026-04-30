@@ -1,0 +1,10 @@
+<button
+    type="button"
+    class="save-icon-button"
+    :class="{ saved: saved }"
+    @click="$emit('toggle-save')"
+    :aria-label="saved ? 'Unsave advice' : 'Save advice'"
+    :title="saved ? 'Unsave' : 'Save'"
+>
+    <span class="save-tag-icon" aria-hidden="true"></span>
+</button>
