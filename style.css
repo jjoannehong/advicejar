@@ -15,14 +15,80 @@ body {
     min-height: 100vh;
 }
 
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 2rem 1rem 1rem;
+    width: 100vw;
+    margin: 0 auto;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 400;
+    text-transform: lowercase;
+}
+
 .app-shell {
-    background: #fff;
-    min-height: 620px;
+    min-height: calc(100vh - 7rem);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    padding: 70px 24px 32px;
+    justify-content: center;
+    padding: 2vh 4vw 4vh;
+}
+
+.profile-icon-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    text-decoration: none;
+}
+
+.profile-icon {
+    position: relative;
+    width: 1.1rem;
+    height: 1.2rem;
+    display: inline-block;
+}
+
+.profile-icon::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    border: 2px solid #222;
+    border-radius: 999px;
+    transform: translateX(-50%);
+}
+
+.profile-icon::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0.85rem;
+    height: 0.45rem;
+    border: 2px solid #222;
+    border-top-left-radius: 999px;
+    border-top-right-radius: 999px;
+    border-bottom: 0;
+    transform: translateX(-50%);
+}
+
+a {
+    color: #111;
+}
+
+a:hover {
+    color: #333;
 }
 
 .title {
@@ -35,13 +101,47 @@ body {
 
 .jar-view,
 .form-view {
-    width: min(520px, 100%);
-    margin-top: 36px;
+    width: min(520px, 92vw);
+    margin-top: 0;
+}
+
+.jar-view {
+    min-height: 72vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
 .jar-illustration {
     margin: 0 auto;
     width: 200px;
+}
+
+.jar-illustration.shaking {
+    animation: jar-shake 500ms ease-in-out infinite;
+}
+
+@keyframes jar-shake {
+    0% {
+        transform: translateX(0) rotate(0deg);
+    }
+    20% {
+        transform: translateX(-4px) rotate(-2deg);
+    }
+    40% {
+        transform: translateX(4px) rotate(2deg);
+    }
+    60% {
+        transform: translateX(-3px) rotate(-1.5deg);
+    }
+    80% {
+        transform: translateX(3px) rotate(1.5deg);
+    }
+    100% {
+        transform: translateX(0) rotate(0deg);
+    }
 }
 
 .jar-lid {
@@ -73,14 +173,15 @@ body {
 }
 
 .action-row {
-    margin-top: 42px;
+    margin-top: 4vh;
     display: flex;
     justify-content: center;
     gap: 22px;
+    width: 100%;
 }
 
 .outline-button,
-.auth-button {
+.outline-link {
     appearance: none;
     border: 2px solid #222;
     border-radius: 12px;
@@ -90,6 +191,8 @@ body {
     font-size: 20px;
     letter-spacing: 0.03em;
     cursor: pointer;
+    text-decoration: none;
+    font-family: inherit;
 }
 
 .outline-button:disabled {
@@ -97,36 +200,50 @@ body {
     cursor: not-allowed;
 }
 
-.auth-button {
-    margin-top: 56px;
+.save-icon-button {
+    display: block;
+    margin-top: 10px;
+    margin-left: auto;
+    border: 0;
+    background: transparent;
+    padding: 4px;
+    cursor: pointer;
+    line-height: 0;
 }
 
-.hint-text,
+.save-tag-icon {
+    position: relative;
+    display: inline-block;
+    width: 18px;
+    height: 22px;
+    border: 2px solid #222;
+    border-radius: 3px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 70% 100%, 50% 80%, 30% 100%, 0 100%);
+    background: transparent;
+}
+
+.save-icon-button.saved .save-tag-icon {
+    background: #222;
+}
+
+.save-icon-button:focus-visible {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
+}
+
 .status-text {
     text-align: center;
     font-size: 18px;
 }
 
-.stats-row {
-    margin-top: 18px;
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
+.status-slot {
+    min-height: 1.5em;
+    margin: 0 0 10px;
+    visibility: hidden;
 }
 
-.stat-pill {
-    margin: 0;
-    border: 1.5px solid #222;
-    border-radius: 999px;
-    padding: 6px 12px;
-    font-size: 15px;
-    text-transform: lowercase;
-    background: #fafafa;
-}
-
-.status-text {
-    margin-top: 8px;
+.status-slot.visible {
+    visibility: visible;
 }
 
 .advice-card {
@@ -135,6 +252,49 @@ body {
     border-radius: 18px;
     background: #f7f7f7;
     padding: 14px 18px;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 20;
+}
+
+.advice-modal {
+    position: relative;
+    width: min(440px, 92vw);
+    border: 2px solid #222;
+    border-radius: 18px;
+    background: #f7f7f7;
+    padding: 16px 18px;
+    text-align: center;
+}
+
+.advice-modal h3 {
+    margin: 0 0 8px;
+    text-transform: lowercase;
+}
+
+.advice-modal p {
+    margin: 0;
+}
+
+.modal-x {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    border: 0;
+    background: transparent;
+    color: #222;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
 }
 
 .advice-card h3 {
@@ -157,6 +317,18 @@ body {
     border-radius: 26px;
     padding: 24px;
     background: #ececec;
+}
+
+.text-input {
+    width: 100%;
+    margin-bottom: 12px;
+    border: 1px dashed #bbb;
+    border-radius: 8px;
+    background: #f2f2f2;
+    font: inherit;
+    font-size: 17px;
+    line-height: 1.4;
+    padding: 12px;
 }
 
 .advice-form textarea {
@@ -190,6 +362,10 @@ body {
     min-width: 78px;
 }
 
+.category-pill:hover {
+    background: #fff;
+}
+
 .category-pill.active {
     background: #d9f3d5;
 }
@@ -200,21 +376,29 @@ body {
     justify-content: space-between;
 }
 
-.logout-link {
-    margin-top: 26px;
-    border: none;
-    background: transparent;
-    color: #555;
-    text-decoration: underline;
-    font: inherit;
-    font-size: 15px;
-    cursor: pointer;
+.profile-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+a.router-link-active {
+    color: #000;
+    text-decoration: none;
 }
 
 @media (max-width: 720px) {
+    header {
+        padding: 1.25rem 1rem 0.5rem;
+    }
+
     .app-shell {
         min-height: auto;
-        padding: 44px 18px 28px;
+        padding: 2vh 6vw 4vh;
+    }
+
+    .jar-view {
+        min-height: 68vh;
     }
 
     .title {
@@ -222,7 +406,7 @@ body {
     }
 
     .outline-button,
-    .auth-button {
+    .outline-link {
         font-size: 16px;
         padding: 9px 15px;
     }
