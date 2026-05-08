@@ -412,20 +412,36 @@ a:hover {
     line-height: 0;
 }
 
-.save-tag-icon {
-    position: relative;
-    display: inline-block;
-    width: 18px;
-    height: 22px;
-    border: 2px solid #222;
-    border-radius: 3px;
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 70% 100%, 50% 80%, 30% 100%, 0 100%);
-    background: transparent;
+.advice-modal .save-icon-button {
+    position: absolute;
+    bottom: 12px;
+    right: 14px;
+    margin: 0;
+    z-index: 1;
 }
 
-.save-icon-button.saved .save-tag-icon {
-    background: #222;
-    animation: save-wiggle 260ms ease-in-out;
+.save-tag-icon {
+    display: inline-block;
+    line-height: 0;
+    vertical-align: middle;
+}
+
+.save-tag-svg {
+    display: block;
+}
+
+.save-tag-path {
+    fill: none;
+    stroke: #222;
+    stroke-width: 2;
+    transition:
+        fill 0.15s ease,
+        stroke 0.15s ease;
+}
+
+.save-icon-button.saved .save-tag-path {
+    fill: #222;
+    stroke: #222;
 }
 
 .save-icon-button:focus-visible {
@@ -473,24 +489,40 @@ a:hover {
     border: 2px solid #222;
     border-radius: 18px;
     background: #f7f7f7;
-    padding: 16px 18px;
+    padding: 16px 18px 40px;
     text-align: center;
+}
+
+.advice-modal-main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 112px;
+    padding: 8px 1.75rem 0;
 }
 
 .advice-modal-quote {
     margin: 0;
-    padding-right: 1.75rem;
+    padding: 0;
+    box-sizing: border-box;
+    text-align: center;
+    font-weight: 400;
+    font-size: clamp(1.125rem, 3.6vw, 1.45rem);
+    line-height: 1.35;
 }
 
 .advice-modal-category {
     display: inline-block;
-    margin: 14px 0 8px;
-    padding: 6px 14px;
+    margin: 12px 0 0;
+    font-weight: 400;
+    padding: 5px 12px;
     border: 2px solid #222;
     border-radius: 999px;
     background: #d9f3d5;
     color: #111;
-    font-size: inherit;
+    font-size: 0.875rem;
+    line-height: 1.25;
     text-transform: lowercase;
 }
 
@@ -577,24 +609,6 @@ a:hover {
     }
     100% {
         transform: translateY(0) scale(1);
-    }
-}
-
-@keyframes save-wiggle {
-    0% {
-        transform: rotate(0deg);
-    }
-    25% {
-        transform: rotate(-14deg);
-    }
-    50% {
-        transform: rotate(12deg);
-    }
-    75% {
-        transform: rotate(-8deg);
-    }
-    100% {
-        transform: rotate(0deg);
     }
 }
 

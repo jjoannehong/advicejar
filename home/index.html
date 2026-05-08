@@ -39,8 +39,10 @@
         <button class="modal-x" type="button" @click="closeAdviceModal" aria-label="Close">
             ×
         </button>
-        <p class="advice-modal-quote">"{{ revealedAdvice.content }}"</p>
-        <p class="advice-modal-category">{{ revealedAdvice.category }}</p>
+        <div class="advice-modal-main">
+            <p class="advice-modal-quote">"{{ revealedAdvice.content }}"</p>
+            <p class="advice-modal-category">{{ revealedAdvice.category }}</p>
+        </div>
         <save-advice
             v-if="canPersistAdvice(revealedAdvice)"
             :saved="isSaved(revealedAdvice.url)"
