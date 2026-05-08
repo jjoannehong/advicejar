@@ -99,6 +99,8 @@ function createAdviceJar() {
   const adviceEntries = computed(() => [
     ...seedAdvice.map((s) => ({
       id: s.id,
+      /** Stable bookmark target for Graffiti saves (seed tips are not posted as objects). */
+      url: `seed:${s.id}`,
       content: s.content,
       category: s.category,
     })),
