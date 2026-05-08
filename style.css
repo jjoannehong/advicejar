@@ -188,9 +188,13 @@ a:hover {
     margin-top: 0;
 }
 
+.profile-body--grid .form-view + .form-view {
+    margin-top: 0;
+}
+
 .profile-page-title {
     width: min(920px, 92vw);
-    margin: 0 auto 0.1rem;
+    margin: 0 auto 1.35rem;
     text-align: left;
 }
 
@@ -265,6 +269,10 @@ a:hover {
 }
 
 .profile-body--grid .profile-grid-cell > .advice-card:first-child {
+    margin-top: 0;
+}
+
+.profile-body--grid .profile-grid-cell .profile-list > li:first-child .advice-card {
     margin-top: 0;
 }
 
@@ -649,8 +657,20 @@ a:hover {
 .category-row {
     margin-top: 16px;
     display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
+    gap: 8px;
+    flex-wrap: nowrap;
+    justify-content: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: 2px;
+}
+
+.category-row .category-pill {
+    flex: 0 0 auto;
+    min-width: unset;
+    padding: 6px 14px;
+    font-size: 15px;
 }
 
 .category-pill {
