@@ -4,12 +4,19 @@ import { GraffitiDecentralized } from "@graffiti-garden/implementation-decentral
 import { GraffitiPlugin, useGraffitiSession } from "@graffiti-garden/wrapper-vue";
 import { useAdviceJar } from "./advice-jar.js";
 
+/** Folder this script lives in (e.g. `/` on Live Server, `/advicejar/` on GitHub Pages). */
+function routerBaseFromScriptUrl() {
+  const path = new URL(import.meta.url).pathname;
+  const dir = path.replace(/[^/]+$/, "");
+  return dir || "/";
+}
+
 function loadComponent(name) {
   return () => import(`./${name}/main.js`).then((m) => m.default());
 }
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHashHistory(routerBaseFromScriptUrl()),
   routes: [
     { path: "/", redirect: "/home" },
     { path: "/home", component: loadComponent("home") },
