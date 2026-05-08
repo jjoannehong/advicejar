@@ -66,18 +66,24 @@ function createAdviceJar() {
   const selectedCategory = ref(null);
   const revealedAdvice = ref(null);
 
-  const { objects: remoteAdviceObjects } = useGraffitiDiscover(
+  const { objects: remoteAdviceObjects, isFirstPoll: adviceFirstPoll } = useGraffitiDiscover(
     [ADVICE_CHANNEL],
     adviceDiscoverSchema,
     null,
     true,
   );
 
-  const { objects: bookmarkObjects } = useGraffitiDiscover(
+  const { objects: bookmarkObjects, isFirstPoll: bookmarksFirstPoll } = useGraffitiDiscover(
     [BOOKMARK_CHANNEL],
     bookmarkDiscoverSchema,
     () => session.value,
     true,
+  );
+
+  /** True while Graffiti is finishing its first discover poll (profile lists would otherwise flash empty). */
+  const isProfileAdviceLoading = computed(
+    () =>
+      Boolean(session.value?.actor) && (adviceFirstPoll.value || bookmarksFirstPoll.value),
   );
 
   const remoteAdvice = computed(() =>
@@ -216,6 +222,7 @@ function createAdviceJar() {
     deleteGivenAdvice,
     removeSavedAdvice,
     canPersistAdvice,
+    isProfileAdviceLoading,
   };
 }
 

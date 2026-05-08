@@ -10,6 +10,7 @@ function setup(props) {
     savedAdviceEntries,
     deleteGivenAdvice,
     removeSavedAdvice,
+    isProfileAdviceLoading,
   } = useAdviceJar();
   const savedAdvice = savedAdviceEntries;
 
@@ -40,6 +41,7 @@ function setup(props) {
     removeSavedAdvice,
     givenAdvice,
     givenCount,
+    isProfileAdviceLoading,
   };
 }
 

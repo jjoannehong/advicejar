@@ -6,7 +6,21 @@
     </template>
 </h2>
 
-<div v-if="session && session.actor" class="profile-body profile-body--grid">
+<div
+    v-if="session && session.actor && isProfileAdviceLoading"
+    class="profile-loading"
+    aria-busy="true"
+    aria-live="polite"
+>
+    <p class="profile-loading-message">
+        finding your advice<span class="profile-loading-dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span>
+    </p>
+</div>
+
+<div
+    v-else-if="session && session.actor"
+    class="profile-body profile-body--grid"
+>
     <p class="status-text profile-stat profile-stat-given">
         advice given: {{ givenCount }}
     </p>
