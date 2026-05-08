@@ -1,4 +1,4 @@
-import { computed, ref } from "vue";
+import { computed, onScopeDispose, ref, watch } from "vue";
 import { useGraffiti, useGraffitiDiscover, useGraffitiSession } from "@graffiti-garden/wrapper-vue";
 
 export const categories = ["school", "personal", "love", "friendship", "random"];
@@ -80,6 +80,11 @@ function createAdviceJar() {
     true,
   );
 
+  /** Keeps saved UI stable until Graffiti bookmarks sync after post/delete. */
+  const optimisticSavedUrls = ref([]);
+  /** User chose unsave while the bookmark post was still in flight — delete after post completes. */
+  const pendingCancelSaveUrls = ref([]);
+
   /** True while Graffiti is finishing its first discover poll (profile lists would otherwise flash empty). */
   const isProfileAdviceLoading = computed(
     () =>
@@ -148,49 +153,128 @@ function createAdviceJar() {
 
   const adviceCount = computed(() => adviceEntries.value.length);
 
-  const savedAdviceEntries = computed(() => {
+  /** Raw merged bookmarks + optimistic saves (can flicker when Graffiti sync replaces arrays). */
+  const savedAdviceMerge = computed(() => {
     const byUrl = new Map(
       adviceEntries.value.filter((e) => e.url).map((e) => [e.url, e]),
     );
-    return (bookmarkObjects.value ?? []).map((b) => {
-      const url = b.value.targetUrl;
-      const entry = byUrl.get(url);
-      return (
-        entry ?? {
-          id: url,
-          url,
-          content: "This advice is no longer on the network.",
-          category: "unknown",
-          missing: true,
-        }
-      );
-    });
+
+    const merged = new Map();
+
+    for (const b of bookmarkObjects.value ?? []) {
+      const targetUrl = b.value?.targetUrl;
+      if (!targetUrl) continue;
+      const entry = byUrl.get(targetUrl);
+      merged.set(targetUrl, {
+        url: targetUrl,
+        content: entry?.content ?? "This advice is no longer on the network.",
+        category: entry?.category ?? "unknown",
+        missing: !entry,
+      });
+    }
+
+    for (const u of optimisticSavedUrls.value) {
+      if (merged.has(u)) continue;
+      const entry = byUrl.get(u);
+      merged.set(u, {
+        url: u,
+        content: entry?.content ?? "…",
+        category: entry?.category ?? "",
+        missing: !entry,
+      });
+    }
+
+    return [...merged.values()].sort((a, b) => a.url.localeCompare(b.url));
+  });
+
+  /** Debounced on decreases only — ignores transient empty/partial bookmark snapshots during sync. */
+  const savedAdviceEntries = ref([]);
+  let savedAdviceEntriesDownTimer = null;
+
+  watch(
+    savedAdviceMerge,
+    (next) => {
+      clearTimeout(savedAdviceEntriesDownTimer);
+      const prevLen = savedAdviceEntries.value.length;
+      const nextLen = next.length;
+      if (nextLen >= prevLen) {
+        savedAdviceEntries.value = next;
+        return;
+      }
+      savedAdviceEntriesDownTimer = setTimeout(() => {
+        savedAdviceEntries.value = savedAdviceMerge.value;
+        savedAdviceEntriesDownTimer = null;
+      }, 220);
+    },
+    { immediate: true },
+  );
+
+  onScopeDispose(() => {
+    clearTimeout(savedAdviceEntriesDownTimer);
   });
 
   function bookmarkForTarget(adviceUrl) {
     return (bookmarkObjects.value ?? []).find((b) => b.value.targetUrl === adviceUrl);
   }
 
+  watch(
+    bookmarkObjects,
+    () => {
+      optimisticSavedUrls.value = optimisticSavedUrls.value.filter((u) => !bookmarkForTarget(u));
+    },
+    { deep: true },
+  );
+
   function isSaved(adviceUrl) {
+    if (!adviceUrl) return false;
+    if (optimisticSavedUrls.value.includes(adviceUrl)) return true;
     return !!bookmarkForTarget(adviceUrl);
   }
 
   async function toggleSaved(adviceUrl) {
     const sess = session.value;
     if (!sess?.actor || !adviceUrl) return;
+
     const existing = bookmarkForTarget(adviceUrl);
     if (existing) {
+      optimisticSavedUrls.value = optimisticSavedUrls.value.filter((u) => u !== adviceUrl);
+      pendingCancelSaveUrls.value = pendingCancelSaveUrls.value.filter((u) => u !== adviceUrl);
       await graffiti.delete(existing.url, sess);
       return;
     }
-    await graffiti.post(
-      {
-        channels: [BOOKMARK_CHANNEL],
-        value: { targetUrl: adviceUrl },
-        allowed: [sess.actor],
-      },
-      sess,
-    );
+
+    if (optimisticSavedUrls.value.includes(adviceUrl)) {
+      optimisticSavedUrls.value = optimisticSavedUrls.value.filter((u) => u !== adviceUrl);
+      if (!pendingCancelSaveUrls.value.includes(adviceUrl)) {
+        pendingCancelSaveUrls.value = [...pendingCancelSaveUrls.value, adviceUrl];
+      }
+      return;
+    }
+
+    pendingCancelSaveUrls.value = pendingCancelSaveUrls.value.filter((u) => u !== adviceUrl);
+    optimisticSavedUrls.value = [...optimisticSavedUrls.value, adviceUrl];
+
+    try {
+      const posted = await graffiti.post(
+        {
+          channels: [BOOKMARK_CHANNEL],
+          value: { targetUrl: adviceUrl },
+          allowed: [sess.actor],
+        },
+        sess,
+      );
+
+      if (pendingCancelSaveUrls.value.includes(adviceUrl)) {
+        pendingCancelSaveUrls.value = pendingCancelSaveUrls.value.filter((u) => u !== adviceUrl);
+        await graffiti.delete(posted.url, sess);
+        optimisticSavedUrls.value = optimisticSavedUrls.value.filter((u) => u !== adviceUrl);
+      }
+      /* If not cancelled: leave optimistic until bookmark sync (watch prunes). */
+    } catch (e) {
+      optimisticSavedUrls.value = optimisticSavedUrls.value.filter((u) => u !== adviceUrl);
+      pendingCancelSaveUrls.value = pendingCancelSaveUrls.value.filter((u) => u !== adviceUrl);
+      throw e;
+    }
   }
 
   async function deleteGivenAdvice(adviceUrl) {
@@ -200,9 +284,22 @@ function createAdviceJar() {
   }
 
   async function removeSavedAdvice(adviceUrl) {
+    const sess = session.value?.actor;
+    if (!sess || !adviceUrl) return;
+
     const b = bookmarkForTarget(adviceUrl);
-    if (!b || !session.value?.actor) return;
-    await graffiti.delete(b.url, session.value);
+    if (b) {
+      optimisticSavedUrls.value = optimisticSavedUrls.value.filter((u) => u !== adviceUrl);
+      await graffiti.delete(b.url, session.value);
+      return;
+    }
+
+    if (optimisticSavedUrls.value.includes(adviceUrl)) {
+      optimisticSavedUrls.value = optimisticSavedUrls.value.filter((u) => u !== adviceUrl);
+      if (!pendingCancelSaveUrls.value.includes(adviceUrl)) {
+        pendingCancelSaveUrls.value = [...pendingCancelSaveUrls.value, adviceUrl];
+      }
+    }
   }
 
   function canPersistAdvice(entry) {

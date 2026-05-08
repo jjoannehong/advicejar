@@ -6,5 +6,20 @@
     :aria-label="saved ? 'Unsave advice' : 'Save advice'"
     :title="saved ? 'Unsave' : 'Save'"
 >
-    <span class="save-tag-icon" aria-hidden="true"></span>
+    <span class="save-tag-icon" aria-hidden="true">
+        <svg
+            class="save-tag-svg"
+            width="18"
+            height="22"
+            viewBox="0 0 18 22"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <path
+                class="save-tag-path"
+                stroke-linejoin="round"
+                d="M2 2h14v13L10 19.5 9 20.5 8 19.5L2 15V2z"
+            />
+        </svg>
+    </span>
 </button>
