@@ -410,6 +410,7 @@ a:hover {
     padding: 4px;
     cursor: pointer;
     line-height: 0;
+    color: #222;
 }
 
 .advice-modal .save-icon-button {
@@ -432,16 +433,15 @@ a:hover {
 
 .save-tag-path {
     fill: none;
-    stroke: #222;
-    stroke-width: 2;
+    stroke: currentColor;
     transition:
         fill 0.15s ease,
         stroke 0.15s ease;
 }
 
 .save-icon-button.saved .save-tag-path {
-    fill: #222;
-    stroke: #222;
+    fill: currentColor;
+    stroke: currentColor;
 }
 
 .save-icon-button:focus-visible {

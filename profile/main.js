@@ -1,4 +1,4 @@
-import { computed, getCurrentInstance } from "vue";
+import { computed, getCurrentInstance, onScopeDispose, ref, watch } from "vue";
 import { useGraffitiSession } from "@graffiti-garden/wrapper-vue";
 import { useAdviceJar } from "../advice-jar.js";
 
@@ -25,10 +25,42 @@ function setup(props) {
     return props.actor;
   });
 
-  const givenAdvice = computed(() => {
+  const givenAdviceImmediate = computed(() => {
     const a = resolvedActor.value;
     if (!a || a === "me") return [];
     return adviceEntries.value.filter((entry) => entry.actor === a);
+  });
+
+  /** Down-debounced like saved list — remote advice can briefly disappear during Graffiti sync. */
+  const givenAdvice = ref([]);
+  let givenAdviceDownTimer = null;
+
+  watch(
+    [givenAdviceImmediate, resolvedActor],
+    ([next, actor], prev) => {
+      clearTimeout(givenAdviceDownTimer);
+
+      if (prev !== undefined && actor !== prev[1]) {
+        givenAdvice.value = next;
+        return;
+      }
+
+      const prevLen = givenAdvice.value.length;
+      if (next.length >= prevLen) {
+        givenAdvice.value = next;
+        return;
+      }
+
+      givenAdviceDownTimer = setTimeout(() => {
+        givenAdvice.value = givenAdviceImmediate.value;
+        givenAdviceDownTimer = null;
+      }, 260);
+    },
+    { immediate: true },
+  );
+
+  onScopeDispose(() => {
+    clearTimeout(givenAdviceDownTimer);
   });
 
   const givenCount = computed(() => givenAdvice.value.length);
