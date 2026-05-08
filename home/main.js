@@ -1,7 +1,11 @@
-import { defineAsyncComponent, ref } from "vue";
+import { defineAsyncComponent, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useGraffitiSession } from "@graffiti-garden/wrapper-vue";
 import { useAdviceJar } from "../advice-jar.js";
 
 function setup() {
+  const route = useRoute();
+  const router = useRouter();
   const {
     categories,
     selectedCategory,
@@ -9,18 +13,38 @@ function setup() {
     receiveAdvice,
     isSaved,
     toggleSaved,
+    hasContributed,
   } = useAdviceJar();
+  const session = useGraffitiSession();
   const receiveStatus = ref("");
   const isLoading = ref(false);
   const showCategories = ref(false);
   const showAdviceModal = ref(false);
+  const showDropAnimation = ref(false);
 
   function closeAdviceModal() {
     showAdviceModal.value = false;
   }
 
+  function playDropAnimation() {
+    showDropAnimation.value = true;
+    window.setTimeout(() => {
+      showDropAnimation.value = false;
+    }, 720);
+  }
+
   function onReceiveAdvice() {
     if (isLoading.value) return;
+
+    if (!session.value?.actor) {
+      receiveStatus.value = "Log in and contribute one advice first.";
+      return;
+    }
+
+    if (!hasContributed(session.value.actor)) {
+      receiveStatus.value = "Contribute one advice before receiving.";
+      return;
+    }
 
     if (showCategories.value) {
       receiveStatus.value = "Select a category";
@@ -53,6 +77,13 @@ function setup() {
     }, 850);
   }
 
+  onMounted(() => {
+    if (route.query.dropAdvice === "1") {
+      playDropAnimation();
+      router.replace("/home");
+    }
+  });
+
   return {
     categories,
     selectedCategory,
@@ -66,6 +97,8 @@ function setup() {
     showAdviceModal,
     closeAdviceModal,
     onSelectCategory,
+    session,
+    showDropAnimation,
   };
 }
 

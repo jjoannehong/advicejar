@@ -8,7 +8,10 @@
             {
                 "imports": {
                     "vue": "https://cdn.jsdelivr.net/npm/vue@3.5.32/dist/vue.esm-browser.js",
-                    "vue-router": "https://cdn.jsdelivr.net/npm/vue-router@5.0.4/dist/vue-router.esm-browser.prod.js"
+                    "vue-router": "https://cdn.jsdelivr.net/npm/vue-router@5.0.4/dist/vue-router.esm-browser.prod.js",
+                    "@graffiti-garden/implementation-local": "https://cdn.jsdelivr.net/npm/@graffiti-garden/implementation-local@1.2.0/dist/browser/index.js",
+                    "@graffiti-garden/implementation-decentralized": "https://cdn.jsdelivr.net/npm/@graffiti-garden/implementation-decentralized@0.0.9/dist/browser/index.js",
+                    "@graffiti-garden/wrapper-vue": "https://cdn.jsdelivr.net/npm/@graffiti-garden/wrapper-vue@1.2.2/dist/browser/plugin.mjs"
                 }
             }
         </script>
@@ -19,18 +22,55 @@
         <div id="app">Loading...</div>
         <template id="template">
             <header>
-                <h1><router-link :to="`/home`">the advice jar</router-link></h1>
-                <router-link
-                    class="profile-icon-link"
-                    :to="`/profile/me`"
-                    aria-label="Profile"
-                    title="Profile"
-                >
-                    <span class="profile-icon" aria-hidden="true"></span>
-                </router-link>
+                <div class="header-left">
+                    <h1>
+                        <router-link class="header-title-link" :to="`/home`">
+                            the advice jar
+                        </router-link>
+                    </h1>
+                    <router-link
+                        v-if="route.path.includes('/profile/')"
+                        class="header-go-back"
+                        :to="`/home`"
+                    >
+                        <span class="header-go-back-arrow" aria-hidden="true">←</span>
+                        go back
+                    </router-link>
+                </div>
+                <div class="header-actions">
+                    <router-link
+                        class="profile-icon-link"
+                        :to="`/profile/me`"
+                        aria-label="Profile"
+                        title="Profile"
+                    >
+                        <span class="profile-icon" aria-hidden="true"></span>
+                    </router-link>
+                    <button
+                        v-if="!$graffitiSession.value"
+                        type="button"
+                        class="auth-button"
+                        @click="$graffiti.login()"
+                    >
+                        LOG IN
+                    </button>
+                    <button
+                        v-else
+                        type="button"
+                        class="auth-button"
+                        @click="$graffiti.logout($graffitiSession.value)"
+                    >
+                        log out
+                    </button>
+                </div>
             </header>
 
-            <main class="app-shell">
+            <main
+                :class="[
+                    'app-shell',
+                    { 'app-shell--profile': route.path.includes('/profile/') },
+                ]"
+            >
                 <router-view></router-view>
             </main>
         </template>

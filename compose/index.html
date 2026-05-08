@@ -1,6 +1,11 @@
 <h2 class="title">add advice</h2>
 <section class="form-view">
-    <form class="advice-form" @submit.prevent="submitAdvice">
+    <form
+        class="advice-form"
+        :class="{ 'advice-bounce': isBouncing, 'advice-fadeout': isFading }"
+        @submit.prevent="submitAdvice"
+    >
+        <p v-if="composeStatus" class="status-text">{{ composeStatus }}</p>
         <textarea
             v-model="content"
             rows="8"
@@ -26,7 +31,9 @@
             <button
                 type="submit"
                 class="outline-button submit-button"
-                :disabled="!content.trim()"
+                :disabled="
+                    isBouncing || !session || !session.actor || !content.trim()
+                "
             >
                 SUBMIT
             </button>

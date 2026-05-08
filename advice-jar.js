@@ -50,6 +50,20 @@ function addAdvice({ content, category }) {
   });
 }
 
+function addAdviceForActor({ actor, content, category }) {
+  adviceEntries.value.push({
+    id: Date.now(),
+    actor,
+    content: content.trim(),
+    category,
+  });
+}
+
+function hasContributed(actor) {
+  if (!actor) return false;
+  return adviceEntries.value.some((entry) => entry.actor === actor);
+}
+
 function adviceCount() {
   return computed(() => adviceEntries.value.length);
 }
@@ -80,6 +94,8 @@ export function useAdviceJar() {
     adviceEntries,
     receiveAdvice,
     addAdvice,
+    addAdviceForActor,
+    hasContributed,
     adviceCount,
     savedAdviceIds,
     savedAdviceEntries,

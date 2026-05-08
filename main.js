@@ -1,5 +1,7 @@
 import { createApp, defineAsyncComponent } from "vue";
-import { createRouter, createWebHashHistory } from "vue-router";
+import { createRouter, createWebHashHistory, useRoute } from "vue-router";
+import { GraffitiDecentralized } from "@graffiti-garden/implementation-decentralized";
+import { GraffitiPlugin, useGraffitiSession } from "@graffiti-garden/wrapper-vue";
 
 function loadComponent(name) {
   return () => import(`./${name}/main.js`).then((m) => m.default());
@@ -18,9 +20,17 @@ const router = createRouter({
 
 createApp({
   template: "#template",
+  setup() {
+    const session = useGraffitiSession();
+    const route = useRoute();
+    return { session, route };
+  },
   components: {
     Home: defineAsyncComponent(loadComponent("home")),
   },
 })
+  .use(GraffitiPlugin, {
+    graffiti: new GraffitiDecentralized(),
+  })
   .use(router)
   .mount("#app");

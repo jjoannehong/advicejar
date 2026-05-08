@@ -4,6 +4,7 @@
     </p>
 
     <div class="jar-illustration" :class="{ shaking: isLoading }" aria-hidden="true">
+        <div v-if="showDropAnimation" class="jar-insert-note"></div>
         <div class="jar-lid"></div>
         <div class="jar-body">
             <div v-if="showCategories && !isLoading" class="jar-categories">
