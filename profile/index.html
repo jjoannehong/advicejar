@@ -11,12 +11,12 @@
         advice given: {{ givenCount }}
     </p>
     <p class="status-text profile-stat profile-stat-saved">
-        advice saved: {{ savedAdviceIds.length }}
+        advice saved: {{ savedAdvice.length }}
     </p>
 
     <!-- Both empty: one row so the two messages align horizontally -->
     <div
-        v-if="!givenCount && !savedAdviceIds.length"
+        v-if="!givenCount && !savedAdvice.length"
         class="profile-empty-pair"
     >
         <div class="advice-card">
@@ -35,9 +35,18 @@
             <ul v-else class="profile-list">
                 <li
                     v-for="advice in givenAdvice"
-                    :key="advice.id"
-                    class="advice-card"
+                    :key="advice.url"
+                    class="advice-card profile-advice-card"
                 >
+                    <button
+                        v-if="advice.url"
+                        type="button"
+                        class="profile-advice-dismiss"
+                        @click="deleteGivenAdvice(advice.url)"
+                        aria-label="Delete advice"
+                    >
+                        ×
+                    </button>
                     <p>"{{ advice.content }}"</p>
                     <p class="chip-label">{{ advice.category }}</p>
                 </li>
@@ -45,17 +54,26 @@
         </section>
 
         <section class="form-view profile-grid-cell">
-            <div v-if="!savedAdviceIds.length" class="advice-card">
+            <div v-if="!savedAdvice.length" class="advice-card">
                 <p>no saved advice yet.</p>
             </div>
             <ul v-else class="profile-list">
-                <li v-for="advice in savedAdvice" :key="advice.id" class="advice-card">
+                <li
+                    v-for="advice in savedAdvice"
+                    :key="advice.url"
+                    class="advice-card profile-advice-card"
+                >
+                    <button
+                        v-if="advice.url"
+                        type="button"
+                        class="profile-advice-dismiss"
+                        @click="removeSavedAdvice(advice.url)"
+                        aria-label="Remove from saved"
+                    >
+                        ×
+                    </button>
                     <p>"{{ advice.content }}"</p>
                     <p class="chip-label">{{ advice.category }}</p>
-                    <save-advice
-                        :saved="true"
-                        @toggle-save="toggleSaved(advice.id)"
-                    ></save-advice>
                 </li>
             </ul>
         </section>

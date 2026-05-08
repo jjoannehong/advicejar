@@ -14,18 +14,24 @@ function setup() {
   const isBouncing = ref(false);
   const isFading = ref(false);
 
-  function submitAdvice() {
+  async function submitAdvice() {
     if (isBouncing.value) return;
     if (!session.value?.actor) {
       composeStatus.value = "Log in to submit advice.";
       return;
     }
     if (!content.value.trim()) return;
-    addAdviceForActor({
-      actor: session.value.actor,
-      content: content.value,
-      category: category.value,
-    });
+    try {
+      await addAdviceForActor({
+        actor: session.value.actor,
+        content: content.value,
+        category: category.value,
+      });
+    } catch (e) {
+      console.error(e);
+      composeStatus.value = "Could not post advice. Try again.";
+      return;
+    }
     composeStatus.value = "";
     isBouncing.value = true;
     window.setTimeout(() => {

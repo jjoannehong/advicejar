@@ -1,4 +1,4 @@
-import { computed, defineAsyncComponent, getCurrentInstance } from "vue";
+import { computed, getCurrentInstance } from "vue";
 import { useGraffitiSession } from "@graffiti-garden/wrapper-vue";
 import { useAdviceJar } from "../advice-jar.js";
 
@@ -8,10 +8,10 @@ function setup(props) {
   const {
     adviceEntries,
     savedAdviceEntries,
-    savedAdviceIds,
-    toggleSaved,
+    deleteGivenAdvice,
+    removeSavedAdvice,
   } = useAdviceJar();
-  const savedAdvice = savedAdviceEntries();
+  const savedAdvice = savedAdviceEntries;
 
   function login() {
     instance?.proxy?.$graffiti?.login?.();
@@ -36,8 +36,8 @@ function setup(props) {
     session,
     login,
     savedAdvice,
-    savedAdviceIds,
-    toggleSaved,
+    deleteGivenAdvice,
+    removeSavedAdvice,
     givenAdvice,
     givenCount,
   };
@@ -46,11 +46,7 @@ function setup(props) {
 export default async () => ({
   props: ["actor"],
   setup,
-  components: {
-    SaveAdvice: defineAsyncComponent(() =>
-      import("../save-advice/main.js").then((m) => m.default()),
-    ),
-  },
+  components: {},
   template: await fetch(new URL("./index.html", import.meta.url)).then((r) =>
     r.text(),
   ),

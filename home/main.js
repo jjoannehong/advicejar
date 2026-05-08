@@ -14,6 +14,7 @@ function setup() {
     isSaved,
     toggleSaved,
     hasContributed,
+    canPersistAdvice,
   } = useAdviceJar();
   const session = useGraffitiSession();
   const receiveStatus = ref("");
@@ -99,6 +100,7 @@ function setup() {
     onSelectCategory,
     session,
     showDropAnimation,
+    canPersistAdvice,
   };
 }
 

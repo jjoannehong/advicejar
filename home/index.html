@@ -42,8 +42,9 @@
         <h3>advice received:</h3>
         <p>"{{ revealedAdvice.content }}"</p>
         <save-advice
-            :saved="isSaved(revealedAdvice.id)"
-            @toggle-save="toggleSaved(revealedAdvice.id)"
+            v-if="canPersistAdvice(revealedAdvice)"
+            :saved="isSaved(revealedAdvice.url)"
+            @toggle-save="toggleSaved(revealedAdvice.url)"
         ></save-advice>
     </div>
 </div>
