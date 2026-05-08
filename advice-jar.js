@@ -1,4 +1,4 @@
-import { computed, ref, watch } from "vue";
+import { computed, onScopeDispose, ref, watch } from "vue";
 import { useGraffiti, useGraffitiDiscover, useGraffitiSession } from "@graffiti-garden/wrapper-vue";
 
 export const categories = ["school", "personal", "love", "friendship", "random"];
@@ -153,7 +153,8 @@ function createAdviceJar() {
 
   const adviceCount = computed(() => adviceEntries.value.length);
 
-  const savedAdviceEntries = computed(() => {
+  /** Raw merged bookmarks + optimistic saves (can flicker when Graffiti sync replaces arrays). */
+  const savedAdviceMerge = computed(() => {
     const byUrl = new Map(
       adviceEntries.value.filter((e) => e.url).map((e) => [e.url, e]),
     );
@@ -184,6 +185,32 @@ function createAdviceJar() {
     }
 
     return [...merged.values()].sort((a, b) => a.url.localeCompare(b.url));
+  });
+
+  /** Debounced on decreases only — ignores transient empty/partial bookmark snapshots during sync. */
+  const savedAdviceEntries = ref([]);
+  let savedAdviceEntriesDownTimer = null;
+
+  watch(
+    savedAdviceMerge,
+    (next) => {
+      clearTimeout(savedAdviceEntriesDownTimer);
+      const prevLen = savedAdviceEntries.value.length;
+      const nextLen = next.length;
+      if (nextLen >= prevLen) {
+        savedAdviceEntries.value = next;
+        return;
+      }
+      savedAdviceEntriesDownTimer = setTimeout(() => {
+        savedAdviceEntries.value = savedAdviceMerge.value;
+        savedAdviceEntriesDownTimer = null;
+      }, 220);
+    },
+    { immediate: true },
+  );
+
+  onScopeDispose(() => {
+    clearTimeout(savedAdviceEntriesDownTimer);
   });
 
   function bookmarkForTarget(adviceUrl) {
