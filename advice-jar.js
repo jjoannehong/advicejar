@@ -187,35 +187,95 @@ function createAdviceJar() {
     return [...merged.values()].sort((a, b) => a.url.localeCompare(b.url));
   });
 
-  /** Debounced on decreases only — ignores transient empty/partial bookmark snapshots during sync. */
+  /** Profile “saved” column: debounce merge snapshots so Graffiti poll churn becomes one UI update. */
+  const SAVED_MERGE_DEBOUNCE_MS = 400;
+  const SAVED_MERGE_EMPTY_GUARD_MS = 350;
+
   const savedAdviceEntries = ref([]);
-  let savedAdviceEntriesDownTimer = null;
+  let savedMergeApplyTimer = null;
+  let savedMergeEmptyGuardTimer = null;
+
+  function bookmarkForTarget(adviceUrl) {
+    return (bookmarkObjects.value ?? []).find((b) => b.value.targetUrl === adviceUrl);
+  }
+
+  function sortSavedMergeRows(rows) {
+    return [...rows].sort((a, b) => a.url.localeCompare(b.url));
+  }
+
+  function savedMergeRowsEqual(a, b) {
+    if (a === b) return true;
+    if (!a || !b || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      const x = a[i];
+      const y = b[i];
+      if (
+        x.url !== y.url ||
+        x.content !== y.content ||
+        x.category !== y.category ||
+        Boolean(x.missing) !== Boolean(y.missing)
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function setSavedAdviceEntriesFromMerge() {
+    const sorted = sortSavedMergeRows(savedAdviceMerge.value);
+    if (savedMergeRowsEqual(savedAdviceEntries.value, sorted)) return;
+    savedAdviceEntries.value = sorted;
+  }
+
+  function flushSavedDisplayNow() {
+    clearTimeout(savedMergeApplyTimer);
+    clearTimeout(savedMergeEmptyGuardTimer);
+    savedMergeApplyTimer = null;
+    savedMergeEmptyGuardTimer = null;
+    setSavedAdviceEntriesFromMerge();
+  }
+
+  let savedMergeWatchInitial = true;
 
   watch(
     savedAdviceMerge,
-    (next) => {
-      clearTimeout(savedAdviceEntriesDownTimer);
-      const prevLen = savedAdviceEntries.value.length;
-      const nextLen = next.length;
-      if (nextLen >= prevLen) {
-        savedAdviceEntries.value = next;
+    () => {
+      if (savedMergeWatchInitial) {
+        savedMergeWatchInitial = false;
+        setSavedAdviceEntriesFromMerge();
         return;
       }
-      savedAdviceEntriesDownTimer = setTimeout(() => {
-        savedAdviceEntries.value = savedAdviceMerge.value;
-        savedAdviceEntriesDownTimer = null;
-      }, 220);
+
+      clearTimeout(savedMergeApplyTimer);
+      clearTimeout(savedMergeEmptyGuardTimer);
+      savedMergeEmptyGuardTimer = null;
+
+      savedMergeApplyTimer = setTimeout(() => {
+        savedMergeApplyTimer = null;
+        const raw = savedAdviceMerge.value;
+        if (raw.length === 0 && savedAdviceEntries.value.length > 0) {
+          savedMergeEmptyGuardTimer = setTimeout(() => {
+            savedMergeEmptyGuardTimer = null;
+            if (savedAdviceMerge.value.length === 0 && savedAdviceEntries.value.length > 0) {
+              savedAdviceEntries.value = [];
+            }
+          }, SAVED_MERGE_EMPTY_GUARD_MS);
+          return;
+        }
+        const sorted = sortSavedMergeRows(raw);
+        if (savedMergeRowsEqual(savedAdviceEntries.value, sorted)) return;
+        savedAdviceEntries.value = sorted;
+      }, SAVED_MERGE_DEBOUNCE_MS);
     },
     { immediate: true },
   );
 
   onScopeDispose(() => {
-    clearTimeout(savedAdviceEntriesDownTimer);
+    clearTimeout(savedMergeApplyTimer);
+    clearTimeout(savedMergeEmptyGuardTimer);
+    savedMergeApplyTimer = null;
+    savedMergeEmptyGuardTimer = null;
   });
-
-  function bookmarkForTarget(adviceUrl) {
-    return (bookmarkObjects.value ?? []).find((b) => b.value.targetUrl === adviceUrl);
-  }
 
   watch(
     bookmarkObjects,
@@ -240,6 +300,7 @@ function createAdviceJar() {
       optimisticSavedUrls.value = optimisticSavedUrls.value.filter((u) => u !== adviceUrl);
       pendingCancelSaveUrls.value = pendingCancelSaveUrls.value.filter((u) => u !== adviceUrl);
       await graffiti.delete(existing.url, sess);
+      flushSavedDisplayNow();
       return;
     }
 
@@ -248,6 +309,7 @@ function createAdviceJar() {
       if (!pendingCancelSaveUrls.value.includes(adviceUrl)) {
         pendingCancelSaveUrls.value = [...pendingCancelSaveUrls.value, adviceUrl];
       }
+      flushSavedDisplayNow();
       return;
     }
 
@@ -268,11 +330,13 @@ function createAdviceJar() {
         pendingCancelSaveUrls.value = pendingCancelSaveUrls.value.filter((u) => u !== adviceUrl);
         await graffiti.delete(posted.url, sess);
         optimisticSavedUrls.value = optimisticSavedUrls.value.filter((u) => u !== adviceUrl);
+        flushSavedDisplayNow();
       }
       /* If not cancelled: leave optimistic until bookmark sync (watch prunes). */
     } catch (e) {
       optimisticSavedUrls.value = optimisticSavedUrls.value.filter((u) => u !== adviceUrl);
       pendingCancelSaveUrls.value = pendingCancelSaveUrls.value.filter((u) => u !== adviceUrl);
+      flushSavedDisplayNow();
       throw e;
     }
   }
@@ -291,6 +355,7 @@ function createAdviceJar() {
     if (b) {
       optimisticSavedUrls.value = optimisticSavedUrls.value.filter((u) => u !== adviceUrl);
       await graffiti.delete(b.url, session.value);
+      flushSavedDisplayNow();
       return;
     }
 
@@ -299,6 +364,7 @@ function createAdviceJar() {
       if (!pendingCancelSaveUrls.value.includes(adviceUrl)) {
         pendingCancelSaveUrls.value = [...pendingCancelSaveUrls.value, adviceUrl];
       }
+      flushSavedDisplayNow();
     }
   }
 
