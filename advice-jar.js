@@ -341,10 +341,23 @@ function createAdviceJar() {
     }
   }
 
+  /** In-memory only — refreshing the page wipes this so undo isn't possible after reload. */
+  const lastDeletion = ref(null);
+
   async function deleteGivenAdvice(adviceUrl) {
     const sess = session.value;
     if (!sess?.actor || !adviceUrl) return;
+
+    const entry = adviceEntries.value.find((e) => e.url === adviceUrl);
     await graffiti.delete(adviceUrl, sess);
+
+    if (entry) {
+      lastDeletion.value = {
+        kind: "given",
+        content: entry.content,
+        category: entry.category,
+      };
+    }
   }
 
   async function removeSavedAdvice(adviceUrl) {
@@ -356,6 +369,7 @@ function createAdviceJar() {
       optimisticSavedUrls.value = optimisticSavedUrls.value.filter((u) => u !== adviceUrl);
       await graffiti.delete(b.url, session.value);
       flushSavedDisplayNow();
+      lastDeletion.value = { kind: "saved", adviceUrl };
       return;
     }
 
@@ -365,7 +379,35 @@ function createAdviceJar() {
         pendingCancelSaveUrls.value = [...pendingCancelSaveUrls.value, adviceUrl];
       }
       flushSavedDisplayNow();
+      lastDeletion.value = { kind: "saved", adviceUrl };
     }
+  }
+
+  async function undoLastDeletion() {
+    const snap = lastDeletion.value;
+    if (!snap) return;
+    lastDeletion.value = null;
+
+    if (snap.kind === "given") {
+      const sess = session.value;
+      if (!sess?.actor) return;
+      await graffiti.post(
+        {
+          channels: [ADVICE_CHANNEL],
+          value: { content: snap.content, category: snap.category },
+        },
+        sess,
+      );
+      return;
+    }
+
+    if (snap.kind === "saved") {
+      await toggleSaved(snap.adviceUrl);
+    }
+  }
+
+  function dismissUndo() {
+    lastDeletion.value = null;
   }
 
   function canPersistAdvice(entry) {
@@ -388,6 +430,9 @@ function createAdviceJar() {
     removeSavedAdvice,
     canPersistAdvice,
     isProfileAdviceLoading,
+    lastDeletion,
+    undoLastDeletion,
+    dismissUndo,
   };
 }
 

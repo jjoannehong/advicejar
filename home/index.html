@@ -23,12 +23,44 @@
     </div>
 
     <div class="action-row">
-        <router-link class="outline-link" :to="`/compose`">ADD</router-link>
+        <button class="outline-button" type="button" @click="onClickAdd">
+            ADD
+        </button>
         <button class="outline-button" type="button" @click="onReceiveAdvice">
             RECEIVE
         </button>
     </div>
 </section>
+
+<div
+    v-if="showLoginPrompt"
+    class="modal-overlay"
+    @click.self="closeLoginPrompt"
+>
+    <div class="advice-modal login-required-modal">
+        <button
+            type="button"
+            class="modal-x"
+            @click="closeLoginPrompt"
+            aria-label="Close"
+        >
+            ×
+        </button>
+        <p class="login-required-title">log in to add advice</p>
+        <p class="login-required-body">
+            you need an account before you can share advice with the jar.
+        </p>
+        <div class="login-required-actions">
+            <button
+                type="button"
+                class="outline-button"
+                @click="$graffiti.login(); closeLoginPrompt()"
+            >
+                LOG IN
+            </button>
+        </div>
+    </div>
+</div>
 
 <div
     v-if="showAdviceModal && revealedAdvice"
@@ -43,6 +75,59 @@
             <p class="advice-modal-quote">"{{ revealedAdvice.content }}"</p>
             <p class="advice-modal-category">{{ revealedAdvice.category }}</p>
         </div>
+        <button
+            type="button"
+            class="copy-icon-button"
+            :class="{ copied: justCopiedAdvice }"
+            @click="copyAdviceToClipboard"
+            :aria-label="justCopiedAdvice ? 'Copied to clipboard' : 'Copy advice to clipboard'"
+            :title="justCopiedAdvice ? 'Copied!' : 'Copy to clipboard'"
+        >
+            <span class="copy-icon" aria-hidden="true">
+                <svg
+                    v-if="!justCopiedAdvice"
+                    class="copy-icon-svg"
+                    width="20"
+                    height="22"
+                    viewBox="0 0 20 22"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <rect
+                        x="4"
+                        y="5"
+                        width="12"
+                        height="15"
+                        rx="2"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    />
+                    <path
+                        d="M7 5V3.5A1.5 1.5 0 0 1 8.5 2h3A1.5 1.5 0 0 1 13 3.5V5"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linejoin="round"
+                    />
+                </svg>
+                <svg
+                    v-else
+                    class="copy-icon-svg"
+                    width="20"
+                    height="22"
+                    viewBox="0 0 20 22"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        d="M4 11.5l4 4 8-9"
+                        stroke="currentColor"
+                        stroke-width="2.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                </svg>
+            </span>
+        </button>
         <save-advice
             v-if="canPersistAdvice(revealedAdvice)"
             :saved="isSaved(revealedAdvice.url)"

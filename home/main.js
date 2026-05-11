@@ -22,9 +22,72 @@ function setup() {
   const showCategories = ref(false);
   const showAdviceModal = ref(false);
   const showDropAnimation = ref(false);
+  const showLoginPrompt = ref(false);
+  const justCopiedAdvice = ref(false);
+  let copyResetTimer = null;
+
+  function onClickAdd() {
+    if (!session.value?.actor) {
+      showLoginPrompt.value = true;
+      return;
+    }
+    router.push("/compose");
+  }
+
+  function closeLoginPrompt() {
+    showLoginPrompt.value = false;
+  }
+
+  function resetCopyState() {
+    justCopiedAdvice.value = false;
+    if (copyResetTimer) {
+      clearTimeout(copyResetTimer);
+      copyResetTimer = null;
+    }
+  }
+
+  function markCopied() {
+    justCopiedAdvice.value = true;
+    if (copyResetTimer) clearTimeout(copyResetTimer);
+    copyResetTimer = window.setTimeout(() => {
+      justCopiedAdvice.value = false;
+      copyResetTimer = null;
+    }, 1500);
+  }
+
+  async function copyAdviceToClipboard() {
+    const text = revealedAdvice.value?.content;
+    if (!text) return;
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        markCopied();
+        return;
+      }
+    } catch {
+      /* fall through to execCommand fallback */
+    }
+
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      markCopied();
+    } catch {
+      /* swallow — clipboard truly unavailable */
+    }
+    document.body.removeChild(ta);
+  }
 
   function closeAdviceModal() {
     showAdviceModal.value = false;
+    resetCopyState();
   }
 
   function playDropAnimation() {
@@ -57,6 +120,7 @@ function setup() {
     revealedAdvice.value = null;
     selectedCategory.value = null;
     receiveStatus.value = "";
+    resetCopyState();
   }
 
   function onSelectCategory(category) {
@@ -67,6 +131,7 @@ function setup() {
     revealedAdvice.value = null;
     receiveStatus.value = "";
     isLoading.value = true;
+    resetCopyState();
 
     window.setTimeout(() => {
       const ok = receiveAdvice();
@@ -101,6 +166,11 @@ function setup() {
     session,
     showDropAnimation,
     canPersistAdvice,
+    justCopiedAdvice,
+    copyAdviceToClipboard,
+    showLoginPrompt,
+    onClickAdd,
+    closeLoginPrompt,
   };
 }
 

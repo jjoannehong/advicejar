@@ -11,8 +11,17 @@ function setup(props) {
     deleteGivenAdvice,
     removeSavedAdvice,
     isProfileAdviceLoading,
+    lastDeletion,
+    undoLastDeletion,
+    dismissUndo,
   } = useAdviceJar();
   const savedAdvice = savedAdviceEntries;
+
+  const undoLabel = computed(() => {
+    const d = lastDeletion.value;
+    if (!d) return "";
+    return d.kind === "given" ? "advice deleted" : "removed from saved";
+  });
 
   function login() {
     instance?.proxy?.$graffiti?.login?.();
@@ -74,6 +83,10 @@ function setup(props) {
     givenAdvice,
     givenCount,
     isProfileAdviceLoading,
+    lastDeletion,
+    undoLastDeletion,
+    dismissUndo,
+    undoLabel,
   };
 }
 

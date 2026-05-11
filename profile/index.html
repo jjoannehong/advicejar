@@ -93,3 +93,27 @@
         </section>
     </template>
 </div>
+
+<div
+    v-if="lastDeletion"
+    class="undo-snackbar"
+    role="status"
+    aria-live="polite"
+>
+    <span class="undo-message">{{ undoLabel }}</span>
+    <button
+        type="button"
+        class="undo-action"
+        @click="undoLastDeletion"
+    >
+        undo
+    </button>
+    <button
+        type="button"
+        class="undo-dismiss"
+        @click="dismissUndo"
+        aria-label="Dismiss"
+    >
+        ×
+    </button>
+</div>
