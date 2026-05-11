@@ -69,7 +69,7 @@ function createAdviceJar() {
   const { objects: remoteAdviceObjects, isFirstPoll: adviceFirstPoll } = useGraffitiDiscover(
     [ADVICE_CHANNEL],
     adviceDiscoverSchema,
-    null,
+    undefined,
     true,
   );
 
